@@ -33,22 +33,16 @@ BAD_KEY_RETRY_INTERVAL = 600 # 秒
 
 # ========== OnDemand模型映射 ==========
 MODEL_MAP = {
+    "gpto3-mini": "predefined-openai-gpto3-mini",
     "gpt-4o": "predefined-openai-gpt4o",
-    "gpt4o": "predefined-openai-gpt4o",
+    "gpt-4.1": "predefined-openai-gpt4.1",
+    "gpt-4.1-mini": "predefined-openai-gpt4.1-mini",
+    "gpt-4.1-nano": "predefined-openai-gpt4.1-nano",
     "gpt-4o-mini": "predefined-openai-gpt4o-mini",
-    "gpt4o-mini": "predefined-openai-gpt4o-mini",
     "deepseek-v3": "predefined-deepseek-v3",
     "deepseek-r1": "predefined-deepseek-r1",
-    "gpt-3.5-turbo": "predefined-openai-gpto3-mini",
-    "gpt3.5-turbo": "predefined-openai-gpto3-mini",
     "claude-3.7-sonnet": "predefined-claude-3.7-sonnet",
     "gemini-2.0-flash": "predefined-gemini-2.0-flash",
-    "gpt-4.1": "predefined-openai-gpt4.1",
-    "gpt4.1": "predefined-openai-gpt4.1",
-    "gpt-4.1-mini": "predefined-openai-gpt4.1-mini",
-    "gpt4.1-mini": "predefined-openai-gpt4.1-mini",
-    "gpt-4.1-nano": "predefined-openai-gpt4.1-nano",
-    "gpt4.1-nano": "predefined-openai-gpt4.1-nano",
 }
 DEFAULT_ONDEMAND_MODEL = "predefined-openai-gpt4o"
 # ==========================================
