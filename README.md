@@ -9,20 +9,21 @@ OnDemand API Proxy
 多模型自动路由
 快速部署 Quick Start
 1. 克隆项目 Clone
+<BASH>
 git clone <your-project-repo>
 cd <your-project-repo>
 2. 配置 Secret
 在 HuggingFace Space 的 Settings -> Secrets 页面，添加：
 
-名称 (Key)	举例值 (Value)	备注 (Remark)
-PRIVATE_KEY	请换为你自己的访问密钥，例如：自行设置一段不容易猜到的密码	你自定义的访问密钥，正式生产请勿暴露
+名称 (Key)	举例值 (Value)	备注
+PRIVATE_KEY	⚠️ 请换为你自己的访问密钥，例如：自行设置一段不容易猜到的密码	你自定义的访问密钥，正式生产请勿暴露
 3. 添加 OnDemand API Key
 编辑 ONDEMAND_APIKEYS 数组，将你的可用 key 逐行填入（至少一个）：
 
-
+<PYTHON>
 ONDEMAND_APIKEYS = [
-    "请换为你自己的OnDemand API KEY",
-    // …
+    "⚠️ 请换为你自己的OnDemand API KEY",
+    # ...
 ]
 4. 一键部署 Deploy
 推送到 HuggingFace Space，即可自动运行。
@@ -30,16 +31,17 @@ ONDEMAND_APIKEYS = [
 API 使用方法 Usage
 所有 API 调用必须加上 HTTP Header：
 
-X-API-KEY: 请填写你自己的PRIVATE_KEY
+<TEXT>
+X-API-KEY: ⚠️ 请填写你自己的PRIVATE_KEY
 未携带或错误，将返回 401 Unauthorized。
 
 典型调用示例 Example
 ChatGPT Completion（同步）：
 
-
+<BASH>
 curl -X POST https://<space-host>/v1/chat/completions \
   -H "Content-Type: application/json" \
-  -H "X-API-KEY: 请填写你自己的PRIVATE_KEY" \
+  -H "X-API-KEY: ⚠️ 请填写你自己的PRIVATE_KEY" \
   -d '{
     "messages": [
       {"role": "user", "content": "你好"}
@@ -47,9 +49,9 @@ curl -X POST https://<space-host>/v1/chat/completions \
   }'
 获取模型列表：
 
-
+<BASH>
 curl -X GET https://<space-host>/v1/models \
-  -H "X-API-KEY: 请填写你自己的PRIVATE_KEY"
+  -H "X-API-KEY: ⚠️ 请填写你自己的PRIVATE_KEY"
 请替换 <space-host> 为你的 HuggingFace Space 生成的地址。
 
 重要说明 Important Notice
