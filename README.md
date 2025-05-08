@@ -43,12 +43,13 @@ ONDEMAND_APIKEYS = [
 
 ### 配置 API网址 和 PRIVATE_KEY
 1. 设置 API网址
-将"https://用户名-空间名.hf.space/v1"替换到需要调用 API 的地方。
+https://用户名-空间名.hf.space/v1
 
-2. 配置 Secrets 中的 PRIVATE_KEY
+替换到需要调用 API 的地方。
+
+3. 配置 Secrets 中的 PRIVATE_KEY
 在 HuggingFace Space 的 Settings -> Secrets 页面中，添加以下配置：
 
-名称 (Key)	值 (Value)	备注 (Remark)
 PRIVATE_KEY	自定义的访问密钥，例如一段复杂的密码	用于接口权限验证，请勿公开。
 
 ---
@@ -66,7 +67,7 @@ PRIVATE_KEY	自定义的访问密钥，例如一段复杂的密码	用于接口�
 
 ## 常见问题 (FAQ)
 
-**Q: 如何修改超级管理员密钥？**  
+**Q: 如何修改密钥？**  
 A: 在 HuggingFace Space 的 Secrets 中修改 `PRIVATE_KEY` 即可，无需停服。
 
 **Q: KEY 用完/失效会怎样？**  
