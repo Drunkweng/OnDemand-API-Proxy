@@ -41,34 +41,19 @@ ONDEMAND_APIKEYS = [
 
 ---
 
-## API 使用方法 (Usage)
+###配置 API网址 和 PRIVATE_KEY
+1. 设置 API网址
+将 HuggingFace Space 自动生成的 API 网址（例如 https://用户名-空间名.hf.space/v1）替换到需要调用 API 的地方。
 
-所有 API 调用必须添加 HTTP Header：
-```http
-X-API-KEY: <你的 PRIVATE_KEY>
-```
-未携带或错误的 KEY 会返回 `401 Unauthorized`。
+2. 配置 Secrets 中的 PRIVATE_KEY
+在 HuggingFace Space 的 Settings -> Secrets 页面中，添加以下配置：
 
-### 典型调用示例 (Example)
-#### ChatGPT Completion（同步调用）：
-```bash
-curl -X POST https://<space-host>/v1/chat/completions \
-  -H "Content-Type: application/json" \
-  -H "X-API-KEY: <你的 PRIVATE_KEY>" \
-  -d '{
-    "messages": [
-      {"role": "user", "content": "你好"}
-    ]
-  }'
-```
+名称 (Key)	值 (Value)	备注 (Remark)
+PRIVATE_KEY	自定义的访问密钥，例如一段复杂的密码	用于接口权限验证，请勿公开。
 
-#### 获取模型列表：
-```bash
-curl -X GET https://<space-host>/v1/models \
-  -H "X-API-KEY: <你的 PRIVATE_KEY>"
-```
+---
 
-> **注意**：请将 `<space-host>` 替换为 HuggingFace Space 自动生成的地址。
+通过以上配置，你即可完成 API 的集成，并使用 PRIVATE_KEY 对接口权限进行有效控制！
 
 ---
 
