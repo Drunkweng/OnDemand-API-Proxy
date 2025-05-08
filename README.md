@@ -41,7 +41,7 @@ ONDEMAND_APIKEYS = [
 
 ---
 
-###配置 API网址 和 PRIVATE_KEY
+### 配置 API网址 和 PRIVATE_KEY
 1. 设置 API网址
 将 HuggingFace Space 自动生成的 API 网址（例如 https://用户名-空间名.hf.space/v1）替换到需要调用 API 的地方。
 
