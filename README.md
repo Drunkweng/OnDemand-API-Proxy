@@ -14,29 +14,18 @@
 ## 快速部署 (Quick Start)
 
 ### 1. 克隆项目 (Clone)
-```bash
-git clone <your-project-repo>
-cd <your-project-repo>
-```
 
-### 2. 配置 Secret
-在 HuggingFace Space 的 `Settings -> Secrets` 页面添加以下配置：
-
-| 名称 (Key)      | 举例值 (Value)                | 备注 (Remark)                          |
-|-----------------|------------------------------|----------------------------------------|
-| `PRIVATE_KEY`   | 自定义的访问密钥，例如一段复杂的密码 | 用于接口权限验证，请勿公开。             |
-
-### 3. 添加 OnDemand API Key
+### 2. 添加 OnDemand API Key
 编辑 `ONDEMAND_APIKEYS` 数组，将你的可用 KEY 逐行填入（至少一个）：
 
 ```python
 ONDEMAND_APIKEYS = [
-    "请换为你自己的OnDemand API KEY",
-    # …
+    "请换为你自己的OnDemand API KEY1",
+    "请换为你自己的OnDemand API KEY2",
 ]
 ```
 
-### 4. 一键部署 (Deploy)
+### 3. 一键部署 (Deploy)
 将代码推送到 HuggingFace Space，即可自动运行服务。
 
 ---
@@ -62,7 +51,7 @@ PRIVATE_KEY	自定义的访问密钥，例如一段复杂的密码	用于接口�
 1. 项目仅为 API 代理，请勿存储非法内容或滥用接口。
 2. 如需扩展更多路径或更改权限逻辑，请修改 `check_private_key` 函数。
 3. KEY 池中的所有 Key 会周期性健康检测，失效的 Key 会自动跳过。
-
+4. 对话间隔超过时间（可自定义在代码内,默认十分钟）自动切换下一个账号，自动新建 session，开始新的上下文。
 ---
 
 ## 常见问题 (FAQ)
