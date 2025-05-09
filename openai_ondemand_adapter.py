@@ -13,7 +13,6 @@ SAFE_HEADER = "X-API-KEY"
 
 # 全局接口访问权限检查
 def check_private_key():
-    # 可以在这里放宽部分接口，比如首页等
     if request.path in ["/", "/favicon.ico"]:
         return
     key = request.headers.get(SAFE_HEADER)
@@ -26,10 +25,11 @@ app.before_request(check_private_key)
 
 # ========== KEY池（每行一个）==========
 ONDEMAND_APIKEYS = [
-    "Key1",
-    "Key2",
+    "KEY1",
+    "KEY2",
 ]
-BAD_KEY_RETRY_INTERVAL = 600 # 秒
+BAD_KEY_RETRY_INTERVAL = 600  # 秒
+SESSION_TIMEOUT = 600  # 对话超时时间（10分钟）
 
 # ========== OnDemand模型映射 ==========
 MODEL_MAP = {
@@ -53,35 +53,69 @@ class KeyManager:
         self.lock = threading.Lock()
         self.key_status = {k: {"bad": False, "bad_ts": None} for k in self.key_list}
         self.idx = 0
+        # 新增：当前正在使用的key和session
+        self.current_key = None
+        self.current_session = None
+        self.last_used_time = None
 
     def display_key(self, key):
         return f"{key[:6]}...{key[-4:]}"
 
     def get(self):
         with self.lock:
+            now = time.time()
+            # 检查对话是否超时
+            if self.current_key and self.last_used_time and (now - self.last_used_time > SESSION_TIMEOUT):
+                print(f"【对话超时】上次使用时间: {time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(self.last_used_time))}")
+                print(f"【对话超时】当前时间: {time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(now))}")
+                print(f"【对话超时】超时{SESSION_TIMEOUT//60}分钟，切换新会话")
+                self.current_key = None
+                self.current_session = None
+
+            # 如果已有正在使用的key，继续使用
+            if self.current_key:
+                if not self.key_status[self.current_key]["bad"]:
+                    print(f"【对话请求】【继续使用API KEY: {self.display_key(self.current_key)}】【状态：正常】")
+                    self.last_used_time = now
+                    return self.current_key
+                else:
+                    # 当前key已标记为异常，需要切换
+                    self.current_key = None
+                    self.current_session = None
+
+            # 如果没有当前key或当前key无效，选择新的key
             total = len(self.key_list)
             for _ in range(total):
                 key = self.key_list[self.idx]
                 self.idx = (self.idx + 1) % total
                 s = self.key_status[key]
                 if not s["bad"]:
-                    print(f"【对话请求】【使用API KEY: {self.display_key(key)}】【状态：正常】")
+                    print(f"【对话请求】【使用新API KEY: {self.display_key(key)}】【状态：正常】")
+                    self.current_key = key
+                    self.current_session = None  # 强制创建新会话
+                    self.last_used_time = now
                     return key
                 if s["bad"] and s["bad_ts"]:
-                    ago = time.time() - s["bad_ts"]
+                    ago = now - s["bad_ts"]
                     if ago >= BAD_KEY_RETRY_INTERVAL:
                         print(f"【KEY自动尝试恢复】API KEY: {self.display_key(key)} 满足重试周期，标记为正常")
                         self.key_status[key]["bad"] = False
                         self.key_status[key]["bad_ts"] = None
-                        print(f"【对话请求】【使用API KEY: {self.display_key(key)}】【状态：正常】")
+                        self.current_key = key
+                        self.current_session = None  # 强制创建新会话
+                        self.last_used_time = now
                         return key
+            
             print("【警告】全部KEY已被禁用，强制选用第一个KEY继续尝试:", self.display_key(self.key_list[0]))
             for k in self.key_list:
                 self.key_status[k]["bad"] = False
                 self.key_status[k]["bad_ts"] = None
             self.idx = 0
-            print(f"【对话请求】【使用API KEY: {self.display_key(self.key_list[0])}】【状态：强制尝试（全部异常）】")
-            return self.key_list[0]
+            self.current_key = self.key_list[0]
+            self.current_session = None  # 强制创建新会话
+            self.last_used_time = now
+            print(f"【对话请求】【使用API KEY: {self.display_key(self.current_key)}】【状态：强制尝试（全部异常）】")
+            return self.current_key
 
     def mark_bad(self, key):
         with self.lock:
@@ -89,6 +123,21 @@ class KeyManager:
                 print(f"【禁用KEY】API KEY: {self.display_key(key)}，接口返回无效（将在{BAD_KEY_RETRY_INTERVAL//60}分钟后自动重试）")
                 self.key_status[key]["bad"] = True
                 self.key_status[key]["bad_ts"] = time.time()
+                if self.current_key == key:
+                    self.current_key = None
+                    self.current_session = None
+
+    def get_session(self, apikey):
+        with self.lock:
+            if not self.current_session:
+                try:
+                    self.current_session = create_session(apikey)
+                    print(f"【创建新会话】SESSION ID: {self.current_session}")
+                except Exception as e:
+                    print(f"【创建会话失败】错误: {str(e)}")
+                    raise
+            self.last_used_time = time.time()
+            return self.current_session
 
 keymgr = KeyManager(ONDEMAND_APIKEYS)
 
@@ -150,7 +199,8 @@ def chat_completions():
     if is_stream:
         def generate():
             def do_once(apikey):
-                sid = create_session(apikey)
+                # 使用KeyManager获取或创建session
+                sid = keymgr.get_session(apikey)
                 url = f"{ONDEMAND_API_BASE}/sessions/{sid}/query"
                 payload = {
                     "query": user_msg,
@@ -208,7 +258,8 @@ def chat_completions():
         return Response(generate(), content_type='text/event-stream')
 
     def nonstream(apikey):
-        sid = create_session(apikey)
+        # 使用KeyManager获取或创建session
+        sid = keymgr.get_session(apikey)
         url = f"{ONDEMAND_API_BASE}/sessions/{sid}/query"
         payload = {
             "query": user_msg,
