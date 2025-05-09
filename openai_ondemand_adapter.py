@@ -8,7 +8,7 @@ import logging
 import os
 
 # ====== 读取 Huggingface Secret 配置的私有key =======
-PRIVATE_KEY = os.environ.get("PRIVATE_KEY", "")
+PRIVATE_KEY = os.environ.get("PRIVATE_KEY", "114514")
 SAFE_HEADER = "X-API-KEY"
 
 # 全局接口访问权限检查
