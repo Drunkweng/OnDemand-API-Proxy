@@ -1,4 +1,4 @@
-# OnDemand-API-Proxy 代理(模型来源自Playground升级质量)
+# OnDemand-API-Proxy 代理(模型来源自Playground)
 
 一款基于 Flask 的 API 代理，连接你的客户端 (只测试了 Cherry Studio) 支持多个模型，管理多轮对话。
 
