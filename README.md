@@ -1,70 +1,82 @@
-# OnDemand API Proxy
+# OnDemand-API-Proxy 代理(模型来源自Playground升级质量)
 
-使用 Flask 开发的 OpenAI/OpenChat 兼容代理，支持 HuggingFace Space 上部署。内置 KEY 池，支持自动失效切换，并提供基于 Huggingface Space Secrets 的接口鉴权。
+一款基于 Flask 的 API 代理，连接你的客户端 (只测试了 Cherry Studio) 支持多个模型，管理多轮对话。
 
-## 特性 (Features)
-- **多 KEY 池轮询**：支持自动失效禁用和恢复。
-- **OpenAI Chat/Completion API 支持**：兼容标准格式。
-- **接口权限控制**：基于 `PRIVATE_KEY` 请求头的权限验证。
-- **一键部署到 HuggingFace Spaces**。
-- **多模型自动路由**：根据需求选择适配模型。
+## 功能
 
----
+- **兼容 OpenAI API**：提供标准 `/v1/models` 和 `/v1/chat/completions` 接口。
+- **支持多个模型**：如 GPT-4o, Claude 3.7 Sonnet, Gemini 2.0 Flash 等。
+- **多轮对话**：用 Session ID 保持对话的上下文。
+- **账户轮换**：轮流使用多个 on-demand.io 账户，平衡负载。
+- **会话超时**：10 分钟无活动后，自动重置会话或切换账户。
+- **Docker 支持**：轻松部署到 Hugging Face Spaces。
 
-## 快速部署 (Quick Start)
+## 使用方法
 
-### 1. 克隆项目 (Clone)
+### 准备工作
 
-### 2. 添加 OnDemand API Key
-编辑 `ONDEMAND_APIKEYS` 数组，将你的可用 KEY 逐行填入（至少一个）：
+1. 准备好你的 on-demand.io 账户 (邮箱和密码)。
+2. 如果本地运行，请安装依赖 (见“本地部署”)。
 
-```python
-ONDEMAND_APIKEYS = [
-    "请换为你自己的OnDemand API KEY1",
-    "请换为你自己的OnDemand API KEY2",
-]
-```
+### 接口
 
-### 3. 一键部署 (Deploy)
-将代码推送到 HuggingFace Space，即可自动运行服务。
+- **模型列表**: `GET /v1/models`
+  - 返回可用模型列表。
+- **聊天**: `POST /v1/chat/completions`
+  - 发送聊天请求，支持流式和非流式响应。
 
----
+### 模型列表 (部分)
 
-### 配置 API网址 和 PRIVATE_KEY
-### 1. 设置 API网址
-https://用户名-空间名.hf.space/v1
+- `gpt-4o`
+- `claude-3.7-sonnet`
+- `gpto3-mini`
+- `gpt-4o`
+- `gpt-4.1`
+- `gpt-4.1-mini`
+- `gpt-4.1-nano`
+- `gpt-4o-mini`
+- `deepseek-v3`
+- `deepseek-r1`
+- `gemini-2.0-flash`
 
-替换到需要调用 API 的地方。
+### 如何部署
 
-### 2. 配置 Secrets 中的 PRIVATE_KEY
-在 HuggingFace Space 的 Settings -> Secrets 页面中，添加以下配置：
+**Hugging Face Spaces 部署 (推荐)**
 
-PRIVATE_KEY	自定义的访问密钥(例如一段复杂的密码,默认为114514)用于接口权限验证，请勿公开。
+1. **创建 Hugging Face 账户**: [https://huggingface.co/](https://huggingface.co/)
+2. **创建 Space**:
+   - 点击 [这里创建新的 Space](https://huggingface.co/new-space)。
+   - 填写 Space 名称。
+   - **重要**: 选择 `Docker` 作为 Space 类型。
+   - 设置权限 (公开或私有)，然后创建!
+3. **上传代码**:
+   - 将以下文件上传到你 Space 的代码仓库：
+     - `2api.py` (主程序)
+     - `requirements.txt` (依赖列表)
+     - `Dockerfile` (Docker 配置文件)
 
----
+4. **配置账户信息 (重要!)**:
+   - 进入你 Space 的“Settings” (设置) -> “Repository secrets” (仓库密钥)
+   - 添加一个名为 `ONDEMAND_ACCOUNTS` 的 Secret
+   - 它的值是一个 JSON 字符串，包含你的 on-demand.io 账户信息:
 
-通过以上配置，你即可完成 API 的集成，并使用 PRIVATE_KEY 对接口权限进行有效控制！
+     ```json
+     {
+       "accounts": [
+         {"email": "你的邮箱1@example.com", "password": "你的密码1"},
+         {"email": "你的邮箱2@example.com", "password": "你的密码2"}
+       ]
+     }
+     ```
 
----
+     **注意**: 这样更安全！把账号信息直接写进代码是很危险的。
 
-## 重要说明 (Important Notice)
-1. 项目仅为 API 代理，请勿存储非法内容或滥用接口。
-2. 如需扩展更多路径或更改权限逻辑，请修改 `check_private_key` 函数。
-3. KEY 池中的所有 Key 会周期性健康检测，失效的 Key 会自动跳过。
-4. 对话间隔超过时间（可自定义在代码内,默认十分钟）自动切换下一个账号，自动新建 session，开始新的上下文。
----
+5. **完成**:
+   - Hugging Face 会自动构建 Docker 镜像并部署你的 API!
+   - 访问你的 Space URL (如 `https://你的用户名-你的space名称.hf.space`) 即可使用。
 
-## 常见问题 (FAQ)
+**完成!**
 
-**Q: 如何修改密钥？**  
-A: 在 HuggingFace Space 的 Secrets 中修改 `PRIVATE_KEY` 即可，无需停服。
+现在，你就可以用 Cherry Studio 连接到你的 API，享受多账户轮询和会话管理了！
 
-**Q: KEY 用完/失效会怎样？**  
-A: 自动切换到下一个可用 KEY。若全部 KEY 失效，返回 `500` 状态码并间隔自动重试。
-
-**Q: 可以支持自定义 API 路径或白名单吗？**  
-A: 可以，通过修改 `check_private_key()` 函数，指定哪些路径需要或不需要鉴权。
-
---- 
-
-通过本 `README`，你可以轻松快速部署和使用 OnDemand API Proxy！
+**任何问题?** 欢迎提问!
